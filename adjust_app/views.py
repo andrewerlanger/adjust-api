@@ -47,7 +47,11 @@ class PerformanceMetricsFilter(FilterSet):
         for i in value:
             metrics_to_include.append(METRICS_CHOICES[int(i)][-1])
 
-        return queryset.values(*self.columns_to_group, *metrics_to_include)
+        if hasattr(self, 'columns_to_group'):
+            return queryset.values(*self.columns_to_group, *metrics_to_include)
+        else:
+            return queryset.values(*metrics_to_include)
+
 
     def group_data(self, queryset, name, value):
         if not value:
@@ -59,7 +63,7 @@ class PerformanceMetricsFilter(FilterSet):
             self.columns_to_group.append(GROUPING_CHOICES[int(i)][-1])
 
         grouped_data = queryset.order_by().values(*self.columns_to_group).distinct() \
-            .annotate(total_impressions=Sum('impressions')) \
+            .annotate(impressions=Sum('impressions')) \
             .annotate(clicks=Sum('clicks')) \
             .annotate(installs=Sum('installs')) \
             .annotate(spend=Sum('spend')) \
